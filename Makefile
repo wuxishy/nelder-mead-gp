@@ -1,10 +1,10 @@
 CXX = g++
-CXXFLAGS = -Wall
+CXXFLAGS = -Wall -O2
 
 %.o : %.cpp
 	$(CXX) -c $< $(CXXFLAGS) -o $@
 
-main: main.o nelder_mead.o
+main: main.o nelder_mead.o gp.o
 	$(CXX) $^ $(CXXFLAGS) -o main
 
 all: main
@@ -12,4 +12,4 @@ all: main
 clean:
 	rm -f main *.o
 
-.PHONY : main
+.PHONY : all clean

@@ -18,11 +18,11 @@ struct randint {
     }
 };
 
-struct rand {
+struct randreal {
     std::mt19937 gen;
     std::uniform_real_distribution<> dis;
 
-    rand() {
+    randreal() {
         std::random_device rd;
         gen.seed(rd());
         dis = std::uniform_real_distribution<> (0, 1);
