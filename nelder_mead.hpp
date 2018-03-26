@@ -37,6 +37,9 @@ struct Node {
     type t;
     int id;
 
+    int num_term, num_func;
+
+    Node* parent;
     std::vector<Node*> children;
 };
 
