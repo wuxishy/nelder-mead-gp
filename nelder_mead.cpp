@@ -8,10 +8,10 @@
 
 simplex::simplex(int d, cost_function* f, std::vector<coord> initial) : 
         dim(d), cf(f) {
+    centroid = coord(dim, 0);
     for(coord c : initial) {
         for(int i = 0; i < dim; ++i) 
             centroid[i] += c[i] / (dim+1);
-
         pts.insert({(*cf)(c), c});
     }
 }

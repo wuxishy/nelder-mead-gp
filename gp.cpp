@@ -86,7 +86,7 @@ Node* population::make_copy(Node* root) {
     new_node->num_term = root->num_term;
     new_node->num_func = root->num_func;
 
-    for(int i = 0; i < root->children.size(); ++i)
+    for(size_t i = 0; i < root->children.size(); ++i)
         new_node->children.push_back(make_copy(root->children[i]));
 
     return new_node;
@@ -96,14 +96,16 @@ Node* population::select(Node* cur, int num, bool t) {
     if (num == 0) return cur;
 
     if (t) --num;
-    for(int i = 0; i < cur->children.size(); ++i) {
+    for(size_t i = 0; i < cur->children.size(); ++i) {
         int n = t ? cur->children[i]->num_func : cur->children[i]->num_term;
         if (num < n) return select(cur->children[i], num, t);
         else num -= n;
     }
+    
+    return nullptr;
 }
 
-void propagate(Node* cur) {
+void population::propagate(Node* cur) {
     if (cur == nullptr) return;
 
     cur->num_func = 1;
@@ -139,9 +141,9 @@ void population::crossover(Node* a, Node* b) {
         cb = select(b, rn());
     }
 
-    for(int i = 0; i < ca->parent->children.size(); ++i)
+    for(size_t i = 0; i < ca->parent->children.size(); ++i)
         if (ca->parent->children[i] == ca) ca->parent->children[i] = cb;
-    for(int i = 0; i < cb->parent->children.size(); ++i)
+    for(size_t i = 0; i < cb->parent->children.size(); ++i)
         if (cb->parent->children[i] == cb) cb->parent->children[i] = ca;
 
     Node *tmp = ca->parent;

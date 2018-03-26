@@ -45,6 +45,9 @@ struct Node {
 
 struct cost_function {
     int dim;
+    
+    cost_function(int d) : dim(d) {}
+	virtual ~cost_function() {}
 
     virtual double operator() (coord& x) = 0; 
 };
