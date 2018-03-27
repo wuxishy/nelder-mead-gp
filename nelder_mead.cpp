@@ -16,6 +16,16 @@ simplex::simplex(int d, cost_function* f, std::vector<coord> initial) :
     }
 }
 
+simplex simplex::make_copy() {
+    simplex ret = simplex();
+    ret.dim = this->dim;
+    ret.cf = this->cf;
+    ret.centroid = this->centroid;
+    ret.pts = this->pts;
+
+    return ret;
+}
+
 coord& simplex::get_pt(terminal x) {
     if (x == terminal::cent) return centroid;
 
@@ -68,6 +78,13 @@ void simplex::replace_worst(coord np) {
 
     pts.erase(it);
     pts.insert({(*cf)(np), np});
+}
+
+double simplex::compute(Node* root) {
+    while ((--pts.end())->first - pts.begin()->first < 0.0001) 
+        replace_worst(eval(root));
+
+    return pts.begin()->first;
 }
 
 

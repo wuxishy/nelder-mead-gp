@@ -1,15 +1,18 @@
 #include "gp.hpp"
 
+#include "omp.h"
+
 population::population(int s, int dep) : size(s) {
     roots = std::vector<std::pair<double, Node*>>(s);
 
+    #pragma omp parallel for 
     for (int i = 0; i < size; ++i) {
         roots[i].second = new Node();
         
         if (i%2) grow(nullptr, roots[i].second, (i/2) % dep + 1);
         else full(nullptr, roots[i].second, (i/2) % dep + 1);
 
-        // TODO: evaluate each tree
+        roots[i].first = score(roots[i].second);
     }
 
     std::sort(roots.begin(), roots.end());
@@ -23,6 +26,16 @@ void population::clear(Node* cur) {
     for (Node* n : cur->children) clear(n);
 
     delete cur;
+}
+
+double population::score(Node* root) {
+    double ret = 0;
+    for (simplex s : training_set) 
+        ret += s.make_copy().compute(root) / training_set.size();
+
+    if (root->num_func + root->num_term > 20) ret *= 100;
+
+    return ret;
 }
 
 void population::grow(Node* parent, Node* cur, int dep) {
@@ -174,9 +187,9 @@ void population::breed() {
         roots.pop_back();
     }
 
+    #pragma omp parallel for
     for(int i = 0; i < cut*2; ++i) {
-        // TODO: compute the fitness of tree
-        roots.push_back({0, buf[i]});
+        roots.push_back({score(buf[i]), buf[i]});
     }
 
     std::sort(roots.begin(), roots.end());
@@ -184,5 +197,12 @@ void population::breed() {
     for(int i = 0; i < cut; ++i) {
         clear(roots.back().second);
         roots.pop_back();
+    }
+}
+
+void population::run(int gen) {
+    // no fancy stuff like editing and decimation
+    for(int i = 0; i < gen; ++i) {
+        breed();
     }
 }

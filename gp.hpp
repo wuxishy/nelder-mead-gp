@@ -9,12 +9,16 @@
 struct population {
     int size;
     std::vector<std::pair<double, Node*>> roots;
+
+    std::vector<simplex> training_set;
     
     randint r1 = randint(1, 4), r2 = randint(1, 5);
     randreal r3;
 
     population(int s, int dep);
     ~population();
+
+    double score(Node* root);
 
     void clear(Node* cur);
 
@@ -31,6 +35,8 @@ struct population {
     void crossover(Node* a, Node* b);
 
     void breed();
+
+    void run(int gen);
 };
 
 #endif // __GP_HPP

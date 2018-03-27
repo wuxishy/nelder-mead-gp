@@ -67,11 +67,16 @@ struct simplex {
     std::map<double, coord> pts;
     coord centroid;
 
+    simplex () {};
     simplex (int d, cost_function* f, std::vector<coord> initial);
+
+    simplex make_copy();
 
     coord& get_pt(terminal x);
     coord eval(Node* root);
     void replace_worst(coord np);
+
+    double compute(Node* root);
 };
 
 #endif // __NELDER_MEAD_HPP
