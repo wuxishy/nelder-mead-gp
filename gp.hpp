@@ -8,6 +8,7 @@
 
 struct population {
     int size;
+    int depth;
     std::vector<std::pair<double, Node*>> roots;
 
     std::vector<simplex> training_set;
@@ -15,10 +16,13 @@ struct population {
     randint r1 = randint(1, 4), r2 = randint(1, 5);
     randreal r3;
 
-    population(int s, int dep);
+    population(int s, int dep) : size(s), depth(dep) {} ;
     ~population();
 
     double score(Node* root);
+    
+    void initialize();
+    void initialize(int len);
 
     void clear(Node* cur);
 
@@ -26,7 +30,7 @@ struct population {
 
     void full(Node* parent, Node* cur, int dep);
 
-    Node* make_copy(Node* root);
+    Node* make_copy(Node* root, Node* parent);
 
     Node* select(Node* cur, int num, bool t=false);
 

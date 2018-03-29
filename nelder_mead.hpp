@@ -64,7 +64,7 @@ struct simplex {
     int dim;
     cost_function* cf;
 
-    std::map<double, coord> pts;
+    std::multimap<double, coord> pts;
     coord centroid;
 
     simplex () {};

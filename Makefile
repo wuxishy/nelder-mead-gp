@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -O2 -fopenmp
+CXXFLAGS = -Wall -g -fopenmp
 
 %.o : %.cpp
 	$(CXX) -c $< $(CXXFLAGS) -o $@

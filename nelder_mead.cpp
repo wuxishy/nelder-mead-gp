@@ -81,8 +81,11 @@ void simplex::replace_worst(coord np) {
 }
 
 double simplex::compute(Node* root) {
-    while ((--pts.end())->first - pts.begin()->first < 0.0001) 
+	int count = 500;
+    while ((--pts.end())->first - pts.begin()->first > 0.0001) {
         replace_worst(eval(root));
+        if (--count == 0) break;
+    }
 
     return pts.begin()->first;
 }
