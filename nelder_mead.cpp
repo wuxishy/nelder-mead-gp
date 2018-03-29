@@ -6,6 +6,62 @@
 
 #include "nelder_mead.hpp"
 
+Node::~Node() {
+    for (Node* n : this->children) delete n;
+}
+
+void Node::edit() {
+    if (this->t == type::terminal) return;
+
+    for(Node* n : this->children) n->edit();
+
+    if (children[0]->t == type::func || children[1]->t == type::func)
+        return;
+
+    if ((func)this->id == func::ifelse) {
+        int a = children[0]->id, b = children[1]->id;
+        if ((terminal)a != terminal::cent && (terminal)b != terminal::cent) {
+            int x = (a<b) ? 2 : 3;
+            this->t = this->children[x]->t;
+            this->id = this->children[x]->id;
+
+            std::vector<Node*> tmp = this->children[x]->children;
+            this->children[x]->children.clear();
+            for(int i = 0; i < 4; ++i) delete this->children[i];
+            this->children = tmp;
+            for(Node* n : this->children) n->parent = this;
+
+            propagate();
+        }
+    }
+    else 
+        if (children[0]->id == children[1]->id) {
+            this->t = type::terminal;
+            this->id = children[0]->id;
+            this->children.clear();
+            propagate();
+        }
+
+}
+
+void Node::propagate() {
+    if (this->t == type::terminal){
+        this->num_term = 1;
+        this->num_func = 0;
+    }
+    else {
+        this->num_func = 1;
+        this->num_term = 0;
+
+        for(Node* n : children) {
+            this->num_func += n->num_func;
+            this->num_term += n->num_term;
+        }
+    }
+
+    if(this->parent) this->parent->propagate(); 
+}
+
 simplex::simplex(int d, cost_function* f, std::vector<coord> initial) : 
         dim(d), cf(f) {
     centroid = coord(dim, 0);
@@ -81,10 +137,16 @@ void simplex::replace_worst(coord np) {
 }
 
 double simplex::compute(Node* root) {
-	int count = 500;
-    while ((--pts.end())->first - pts.begin()->first > 0.0001) {
+	int count = 2500;
+    while (true) {
+    	double best = pts.begin()->first;
+    	double worst = (--pts.end())->first;
+    	if (worst - best < 0.0001) break;
+    	if (worst / best > 50) break; // diverging, bad
+    	
         replace_worst(eval(root));
-        if (--count == 0) break;
+        
+        if (--count == 0) break; // in case converges too slowly
     }
 
     return pts.begin()->first;

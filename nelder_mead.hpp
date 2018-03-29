@@ -20,9 +20,9 @@ enum class type {
 
 enum class terminal {
     vb = 1, // best vertex
-    vw,     // worst vertex
     vsb,    // second best vertex
     vsw,    // second worse vertex
+    vw,     // worst vertex
     cent    // centroid 
 };
 
@@ -41,7 +41,13 @@ struct Node {
 
     Node* parent;
     std::vector<Node*> children;
+
+    ~Node();
+
+    void edit();
+    void propagate();
 };
+
 
 struct cost_function {
     int dim;

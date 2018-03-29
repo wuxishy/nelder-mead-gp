@@ -43,7 +43,7 @@ void print_node(Node* root){
 }
 
 population::~population() {
-   for (auto n : roots) clear(n.second); 
+   for (auto n : roots) delete n.second; 
 }
 
 void population::initialize() {
@@ -56,8 +56,8 @@ void population::initialize(int len) {
     	roots.push_back({0, nullptr});
         roots.back().second = new Node();
         
-        if (i%2) grow(nullptr, roots.back().second, (i/2) % (depth-1) + 2);
-        else full(nullptr, roots.back().second, (i/2) % (depth-1) + 2);
+        if (i%2) grow(nullptr, roots.back().second, (i/2) % (depth-2) + 3);
+        else full(nullptr, roots.back().second, (i/2) % (depth-2) + 3);
 
         roots.back().first = score(roots[i].second);
     }
@@ -65,18 +65,14 @@ void population::initialize(int len) {
     std::sort(roots.begin(), roots.end());
 }
 
-void population::clear(Node* cur) {
-    for (Node* n : cur->children) clear(n);
-
-    delete cur;
-}
-
 double population::score(Node* root) {
     double ret = 0;
-    for (simplex s : training_set) 
-        ret += s.make_copy().compute(root) / training_set.size();
+    #pragma omp parallel for reduction(+:ret)
+    for (size_t i = 0; i < training_set.size(); ++i) 
+        ret += training_set[i].make_copy().compute(root) 
+            / training_set.size();
 
-    if (root->num_func + root->num_term > 50) ret *= 100;
+    if (root->num_func + root->num_term > 30) ret *= 100;
 
     return ret;
 }
@@ -166,21 +162,6 @@ Node* population::select(Node* cur, int num, bool t) {
     return nullptr;
 }
 
-// cur cannot be a leaf
-void population::propagate(Node* cur) {
-    if (cur == nullptr) return;
-
-    cur->num_func = 1;
-    cur->num_term = 0;
-
-    for(Node* n : cur->children) {
-        cur->num_func += n->num_func;
-        cur->num_term += n->num_term;
-    }
-
-    propagate(cur->parent);
-}
-
 void population::crossover(Node* a, Node* b) {
     // do nothing with trivial trees
     if (a->num_func <= 1 || b->num_func <= 1) return;
@@ -222,8 +203,8 @@ void population::crossover(Node* a, Node* b) {
     ca->parent = cb->parent;
     cb->parent = tmp;
 
-    propagate(ca->parent);
-    propagate(cb->parent);
+    ca->propagate();
+    cb->propagate();
 }
 
 void population::breed() {
@@ -243,7 +224,7 @@ void population::breed() {
     for(int i = 0; i < cut; ++i) crossover(buf[2*i], buf[2*i+1]);
 
     for(int i = 0; i < cut; ++i) {
-        clear(roots.back().second);
+        delete roots.back().second;
         roots.pop_back();
     }
 
@@ -255,7 +236,7 @@ void population::breed() {
     std::sort(roots.begin(), roots.end());
 
     for(int i = 0; i < cut; ++i) {
-        clear(roots.back().second);
+        delete roots.back().second;
         roots.pop_back();
     }
 }
@@ -263,6 +244,20 @@ void population::breed() {
 void population::run(int gen) {
     // no fancy stuff like editing and decimation
     for(int i = 0; i < gen; ++i) {
+        if(i > 0 && i%20 == 0) for(auto n : roots) n.second->edit();
+        
+        if(i > 0 && i%40 == 0) {
+            std::vector<std::pair<double, Node*>> tmp;
+            for (size_t i = 0; i < roots.size(); ++i) {
+                if (roots[i].second->num_func > 2 &&
+                        (i == 0 || roots[i].first / roots[i-1].first > 1.001))
+                    tmp.push_back(roots[i]);
+            }
+
+            roots = std::move(tmp);
+            initialize(size - roots.size());
+        }
+
         printf("Generation %d: %.3f %.3f\n", i, roots.front().first, roots.back().first);
         print_node(roots.front().second);
         printf("\n");

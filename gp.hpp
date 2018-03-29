@@ -24,8 +24,6 @@ struct population {
     void initialize();
     void initialize(int len);
 
-    void clear(Node* cur);
-
     void grow(Node* parent, Node* cur, int dep);
 
     void full(Node* parent, Node* cur, int dep);
@@ -33,8 +31,6 @@ struct population {
     Node* make_copy(Node* root, Node* parent);
 
     Node* select(Node* cur, int num, bool t=false);
-
-    void propagate(Node* cur);
 
     void crossover(Node* a, Node* b);
 
