@@ -242,11 +242,10 @@ void population::breed() {
 }
 
 void population::run(int gen) {
-    // no fancy stuff like editing and decimation
     for(int i = 0; i < gen; ++i) {
         if(i > 0 && i%20 == 0) for(auto n : roots) n.second->edit();
         
-        if(i > 0 && i%40 == 0) {
+        if(i > 0 && i%60 == 0) {
             std::vector<std::pair<double, Node*>> tmp;
             for (size_t i = 0; i < roots.size(); ++i) {
                 if (roots[i].second->num_func > 2 &&
